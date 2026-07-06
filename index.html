@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAC | Sign in</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-900">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white text-2xl mb-3">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Vision Asset Care</h1>
+                <p class="text-slate-400 text-sm">Fleet Inspection &amp; Asset Management</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-xl">
+                <h2 class="text-lg font-bold text-slate-800 mb-1">Sign in</h2>
+                <p class="text-sm text-gray-500 mb-6">Access the admin portal</p>
+
+                <div id="login-error" class="hidden mb-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"></div>
+
+                <label class="field-label">Email</label>
+                <input id="login-email" type="email" class="field-input mb-4" placeholder="admin@viesl.com" autocomplete="username">
+
+                <label class="field-label">Password</label>
+                <input id="login-password" type="password" class="field-input mb-6" placeholder="••••••••" autocomplete="current-password">
+
+                <button id="login-btn" class="btn btn-primary w-full justify-center">
+                    <span id="login-label">Sign in</span>
+                </button>
+
+                <div class="mt-6 text-xs text-gray-400 bg-slate-50 border rounded-lg p-3">
+                    <p class="font-semibold text-slate-500 mb-1">Demo accounts</p>
+                    admin@viesl.com / admin123 &nbsp;·&nbsp; manager@viesl.com / manager123
+                </div>
+            </div>
+            <p class="text-center text-slate-500 text-xs mt-6">VAC v1.0 · Vision Infra Equipment Solutions Ltd.</p>
+        </div>
+    </div>
+
+    <!-- App scripts (classic order; no bundler needed) -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/notifications.js"></script>
+    <script src="js/utils/validation.js"></script>
+    <script src="js/data/seed.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // If Firebase mode is on, add the SDK tags below and in app.html:
+        // <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"><\/script>
+        // <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"><\/script>
+
+        VAC.Storage.init();
+        VAC.Seed.run();                 // ensures the demo users exist
+        VAC.Auth.redirectIfAuthed();    // skip login if a session is active
+
+        const errBox = document.getElementById('login-error');
+        const btn = document.getElementById('login-btn');
+        const label = document.getElementById('login-label');
+
+        function showError(msg) {
+            errBox.textContent = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        function doLogin() {
+            errBox.classList.add('hidden');
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            label.innerHTML = '<i class="fas fa-spinner spin"></i> Signing in...';
+            btn.disabled = true;
+            VAC.Auth.login(email, password)
+                .then(() => { window.location.href = 'app.html'; })
+                .catch(err => {
+                    showError(err.message || 'Sign in failed.');
+                    label.textContent = 'Sign in';
+                    btn.disabled = false;
+                });
+        }
+
+        btn.addEventListener('click', doLogin);
+        document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    </script>
+</body>
+</html>
