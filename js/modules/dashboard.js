@@ -1,7 +1,8 @@
 /* ===========================================================================
    modules/dashboard.js
-   KPI cards + charts + recent activity, all derived from live store data.
-   (This replaces the stray initDashboard() that used to sit in style.css.)
+   HVI-style landing dashboard: quick stat tiles + four summary cards
+   (Vehicle Status, Inspection Summary, Work Order Summary, Upcoming Schedule)
+   plus supporting charts. All figures derive from live store data.
    ======================================================================== */
 window.VAC = window.VAC || {};
 VAC.Modules = VAC.Modules || {};
@@ -16,136 +17,156 @@ VAC.Modules.dashboard = (function () {
         if (clockTimer) { clearInterval(clockTimer); clockTimer = null; }
     }
 
-    function kpis() {
+    function counts() {
         const vehicles = VAC.Storage.get('vehicles');
-        const operators = VAC.Storage.get('operators');
         const reports = VAC.Storage.get('reports');
-        return [
-            { label: 'Vehicles',        val: vehicles.length, icon: 'fa-truck',          color: 'text-blue-600' },
-            { label: 'Operators',       val: operators.length, icon: 'fa-user-gear',      color: 'text-indigo-600' },
-            { label: 'Inspections',     val: reports.length, icon: 'fa-clipboard-check',  color: 'text-emerald-600' },
-            { label: 'Pending',         val: reports.filter(r => r.status === 'Pending').length,  icon: 'fa-hourglass-half', color: 'text-amber-600' },
-            { label: 'Rejected',        val: reports.filter(r => r.status === 'Rejected').length, icon: 'fa-triangle-exclamation', color: 'text-rose-600' },
-            { label: 'In Maintenance',  val: vehicles.filter(v => v.status === 'Maintenance').length, icon: 'fa-screwdriver-wrench', color: 'text-slate-600' }
-        ];
+        const faults = VAC.Storage.get('faults');
+        const wos = VAC.Storage.get('workorders');
+        const operators = VAC.Storage.get('operators');
+        return { vehicles, reports, faults, wos, operators };
     }
 
-    function template() {
-        const cards = kpis().map(k => `
-            <div class="vac-card p-4 flex items-center justify-between">
+    function statTiles(c) {
+        const tiles = [
+            { label: 'Total Vehicles', val: c.vehicles.length, icon: 'fa-truck', bg: 'bg-blue-100', fg: 'text-blue-600' },
+            { label: 'Active Operators', val: c.operators.filter(o => o.status === 'Active').length, icon: 'fa-user-gear', bg: 'bg-indigo-100', fg: 'text-indigo-600' },
+            { label: 'Open Faults', val: c.faults.filter(f => f.status === 'Open').length, icon: 'fa-triangle-exclamation', bg: 'bg-rose-100', fg: 'text-rose-600' },
+            { label: 'Open Work Orders', val: c.wos.filter(w => w.status !== 'Completed').length, icon: 'fa-screwdriver-wrench', bg: 'bg-amber-100', fg: 'text-amber-600' }
+        ];
+        return tiles.map(t => `
+            <div class="stat-tile">
+                <div class="stat-icon ${t.bg} ${t.fg}"><i class="fas ${t.icon}"></i></div>
                 <div>
-                    <p class="text-[11px] uppercase tracking-wide text-gray-400 font-bold">${k.label}</p>
-                    <h3 class="text-2xl font-bold text-slate-800 mt-1">${k.val}</h3>
+                    <div class="text-2xl font-bold text-slate-800 leading-none">${t.val}</div>
+                    <div class="text-xs text-gray-500 mt-1">${t.label}</div>
                 </div>
-                <i class="fas ${k.icon} ${k.color} text-2xl opacity-80"></i>
             </div>`).join('');
+    }
 
+    function vehicleStatusCard(c) {
+        const by = s => c.vehicles.filter(v => v.status === s).length;
+        const rows = [
+            ['Active', by('Active'), 'text-emerald-600'],
+            ['In Maintenance', by('Maintenance'), 'text-amber-600'],
+            ['Idle', by('Idle'), 'text-slate-500']
+        ];
+        return card('Vehicle Status', 'fa-truck', 'text-blue-600',
+            rows.map(r => `<div class="summary-row"><span class="${r[2]}">${r[0]}</span><span class="val">${r[1]}</span></div>`).join(''));
+    }
+
+    function inspectionCard(c) {
+        const by = s => c.reports.filter(r => r.status === s).length;
+        const rows = [
+            ['Approved', by('Approved'), 'text-emerald-600'],
+            ['Pending', by('Pending'), 'text-amber-600'],
+            ['Rejected', by('Rejected'), 'text-rose-600'],
+            ['Total', c.reports.length, 'text-slate-700']
+        ];
+        return card('Inspection Summary', 'fa-clipboard-check', 'text-emerald-600',
+            rows.map(r => `<div class="summary-row"><span class="${r[2]}">${r[0]}</span><span class="val">${r[1]}</span></div>`).join(''));
+    }
+
+    function workOrderCard(c) {
+        const by = s => c.wos.filter(w => w.status === s).length;
+        const rows = [
+            ['Open', by('Open'), 'text-blue-600'],
+            ['In Progress', by('In Progress'), 'text-amber-600'],
+            ['Pending Approval', by('Pending Approval'), 'text-indigo-600'],
+            ['Completed', by('Completed'), 'text-emerald-600']
+        ];
+        return card('Work Order Summary', 'fa-screwdriver-wrench', 'text-amber-600',
+            rows.map(r => `<div class="summary-row"><span class="${r[2]}">${r[0]}</span><span class="val">${r[1]}</span></div>`).join(''));
+    }
+
+    function scheduleCard() {
+        const items = VAC.Storage.get('schedule');
+        const body = items.length ? items.map(s => `
+            <div class="summary-row">
+                <span><span class="text-slate-700 font-medium">${s.vehicle}</span>
+                <span class="text-gray-400 text-xs ml-1">${s.type}</span></span>
+                <span class="val text-xs">${s.date}</span>
+            </div>`).join('') : '<div class="summary-row text-gray-400">Nothing scheduled</div>';
+        return card('Upcoming Schedule', 'fa-calendar-check', 'text-indigo-600', body);
+    }
+
+    function card(title, icon, color, body) {
+        return `<div class="summary-card">
+            <div class="summary-card-head"><i class="fas ${icon} ${color}"></i>${title}</div>
+            ${body}
+        </div>`;
+    }
+
+    function template(c) {
         return `
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
-                <p class="text-sm text-gray-500">Fleet overview at a glance</p>
+                <p class="text-sm text-gray-500">Fleet overview for Vision Infra Equipment Solutions</p>
             </div>
             <span id="live-clock" class="text-sm font-mono text-gray-500"></span>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">${cards}</div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">${statTiles(c)}</div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+            ${vehicleStatusCard(c)}
+            ${inspectionCard(c)}
+            ${workOrderCard(c)}
+            ${scheduleCard()}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div class="vac-card p-5">
                 <h4 class="font-bold text-slate-700 mb-3">Inspection Status</h4>
-                <canvas id="statusChart" height="180"></canvas>
+                <canvas id="statusChart" height="190"></canvas>
             </div>
             <div class="vac-card p-5">
-                <h4 class="font-bold text-slate-700 mb-3">Vehicle Fleet Status</h4>
-                <canvas id="fleetChart" height="180"></canvas>
+                <h4 class="font-bold text-slate-700 mb-3">Fault Severity</h4>
+                <canvas id="faultChart" height="190"></canvas>
             </div>
             <div class="vac-card p-5">
                 <h4 class="font-bold text-slate-700 mb-3">Inspections by Site</h4>
-                <canvas id="siteChart" height="180"></canvas>
-            </div>
-        </div>
-
-        <div class="vac-card p-5">
-            <div class="flex items-center justify-between mb-3">
-                <h4 class="font-bold text-slate-700">Recent Inspections</h4>
-                <a href="#" onclick="VAC.App.navigate('reports');return false;" class="text-sm text-blue-600 font-semibold">View all</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="vac-table">
-                    <thead><tr><th>Report ID</th><th>Vehicle</th><th>Operator</th><th>Date</th><th>Status</th></tr></thead>
-                    <tbody id="recent-reports-body"></tbody>
-                </table>
+                <canvas id="siteChart" height="190"></canvas>
             </div>
         </div>`;
     }
 
-    function badge(status) {
-        const map = { Approved: 'badge-green', Pending: 'badge-yellow', Rejected: 'badge-red' };
-        return `<span class="badge ${map[status] || 'badge-gray'}">${status}</span>`;
-    }
-
-    function renderRecent() {
-        const body = document.getElementById('recent-reports-body');
-        const reports = VAC.Storage.get('reports').slice(0, 6);
-        body.innerHTML = reports.map(r => `
-            <tr>
-                <td class="font-semibold text-blue-600">${r.id}</td>
-                <td>${r.vehicle}</td>
-                <td>${r.operator}</td>
-                <td>${r.date}</td>
-                <td>${badge(r.status)}</td>
-            </tr>`).join('') || '<tr><td colspan="5" class="text-center text-gray-400 py-6">No inspections yet</td></tr>';
-    }
-
-    function renderCharts() {
+    function renderCharts(c) {
         if (typeof Chart === 'undefined') return;
-        const reports = VAC.Storage.get('reports');
-        const vehicles = VAC.Storage.get('vehicles');
-        const sites = VAC.Storage.get('sites');
-
-        const statusCounts = ['Approved', 'Pending', 'Rejected'].map(s => reports.filter(r => r.status === s).length);
+        const statusCounts = ['Approved', 'Pending', 'Rejected'].map(s => c.reports.filter(r => r.status === s).length);
         charts.push(new Chart(document.getElementById('statusChart'), {
             type: 'doughnut',
-            data: { labels: ['Approved', 'Pending', 'Rejected'],
-                datasets: [{ data: statusCounts, backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'] }] },
+            data: { labels: ['Approved', 'Pending', 'Rejected'], datasets: [{ data: statusCounts, backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'] }] },
             options: { plugins: { legend: { position: 'bottom' } } }
         }));
 
-        const fleetLabels = ['Active', 'Maintenance', 'Idle'];
-        const fleetCounts = fleetLabels.map(s => vehicles.filter(v => v.status === s).length);
-        charts.push(new Chart(document.getElementById('fleetChart'), {
+        const sevLabels = ['Low', 'Medium', 'High', 'Critical'];
+        const sevCounts = sevLabels.map(s => c.faults.filter(f => f.severity === s).length);
+        charts.push(new Chart(document.getElementById('faultChart'), {
             type: 'bar',
-            data: { labels: fleetLabels,
-                datasets: [{ data: fleetCounts, backgroundColor: ['#3b82f6', '#64748b', '#eab308'] }] },
+            data: { labels: sevLabels, datasets: [{ data: sevCounts, backgroundColor: ['#22c55e', '#eab308', '#f97316', '#ef4444'] }] },
             options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         }));
 
-        const siteLabels = sites.map(s => s.name.split(' ')[0]);
-        const siteCounts = sites.map(s => reports.filter(r => r.site === s.id).length);
+        const sites = VAC.Storage.get('sites');
         charts.push(new Chart(document.getElementById('siteChart'), {
             type: 'bar',
-            data: { labels: siteLabels,
-                datasets: [{ data: siteCounts, backgroundColor: '#2563eb' }] },
+            data: { labels: sites.map(s => s.name.split(' ')[0]), datasets: [{ data: sites.map(s => c.reports.filter(r => r.site === s.id).length), backgroundColor: '#2563eb' }] },
             options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
         }));
     }
 
     function startClock() {
-        const tick = () => {
-            const c = document.getElementById('live-clock');
-            if (c) c.textContent = new Date().toLocaleString();
-        };
-        tick();
-        clockTimer = setInterval(tick, 1000);
+        const tick = () => { const el = document.getElementById('live-clock'); if (el) el.textContent = new Date().toLocaleString(); };
+        tick(); clockTimer = setInterval(tick, 1000);
     }
 
     return {
         render(container) {
             destroy();
-            container.innerHTML = template();
-            renderRecent();
-            renderCharts();
+            const c = counts();
+            container.innerHTML = template(c);
+            renderCharts(c);
             startClock();
         },
         destroy

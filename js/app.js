@@ -1,9 +1,8 @@
 /* ===========================================================================
    app.js
-   Portal bootstrap: guards the page, renders the shell (header + user menu),
-   handles navigation between modules, and provides shared UI helpers
-   (modal, confirm dialog, and a generic CRUD table engine used by the
-   vehicles / operators / sites modules).
+   Portal bootstrap: guards the page, renders the shell (collapsible sidebar +
+   header with account menu), routes between modules, and provides shared UI
+   helpers (modal, confirm, and a generic CRUD table engine).
    ======================================================================== */
 window.VAC = window.VAC || {};
 
@@ -11,10 +10,7 @@ window.VAC = window.VAC || {};
    Shared UI helpers
    ------------------------------------------------------------------------ */
 VAC.UI = (function () {
-    function closeModal() {
-        const m = document.getElementById('vac-modal');
-        if (m) m.remove();
-    }
+    function closeModal() { const m = document.getElementById('vac-modal'); if (m) m.remove(); }
 
     function modal(title, bodyHTML, onSubmit, submitLabel) {
         closeModal();
@@ -34,7 +30,6 @@ VAC.UI = (function () {
                 </div>
             </div>`;
         document.body.appendChild(wrap);
-
         wrap.querySelector('#vac-modal-x').onclick = closeModal;
         wrap.querySelector('#vac-modal-cancel').onclick = closeModal;
         wrap.addEventListener('mousedown', e => { if (e.target === wrap) closeModal(); });
@@ -42,24 +37,21 @@ VAC.UI = (function () {
     }
 
     function confirm(message, onYes) {
-        modal('Please confirm',
-            `<p class="text-sm text-gray-600">${message}</p>`,
-            () => { closeModal(); onYes && onYes(); },
-            'Confirm');
+        modal('Please confirm', `<p class="text-sm text-gray-600">${message}</p>`,
+            () => { closeModal(); onYes && onYes(); }, 'Confirm');
         const ok = document.getElementById('vac-modal-ok');
-        ok.classList.remove('btn-primary');
-        ok.classList.add('btn-danger');
+        ok.classList.remove('btn-primary'); ok.classList.add('btn-danger');
     }
 
-    /* -------- Generic CRUD view used by vehicles / operators / sites ------- */
+    /* -------- Generic CRUD view (vehicles / operators / sites / users) ----- */
     function crudView(container, cfg) {
-        const canEdit = VAC.Auth.hasRole('admin', 'manager');
+        const editRoles = cfg.editRoles || ['admin', 'manager'];
+        const canEdit = VAC.Auth.hasRole.apply(VAC.Auth, editRoles);
 
         function badgeFor(field, value) {
             const map = (cfg.badges && cfg.badges[field]) || {};
             return `<span class="badge ${map[value] || 'badge-gray'}">${value}</span>`;
         }
-
         function currentRows(term) {
             let rows = VAC.Storage.get(cfg.key);
             if (term) {
@@ -68,21 +60,16 @@ VAC.UI = (function () {
             }
             return rows;
         }
-
         function renderRows(term) {
             const rows = currentRows(term);
             const tbody = container.querySelector('#crud-body');
-            if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="${cfg.columns.length + 1}" class="text-center text-gray-400 py-8">No records found</td></tr>`;
-                return;
-            }
+            if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${cfg.columns.length + 1}" class="text-center text-gray-400 py-8">No records found</td></tr>`; return; }
             tbody.innerHTML = rows.map(r => {
                 const cells = cfg.columns.map(col => {
                     let v = r[col.field];
                     if (col.badge) v = badgeFor(col.field, v);
                     else if (col.map) v = col.map(r[col.field], r);
-                    const cls = col.bold ? 'font-semibold text-blue-600' : '';
-                    return `<td class="${cls}">${v === undefined || v === null ? '—' : v}</td>`;
+                    return `<td class="${col.bold ? 'font-semibold text-blue-600' : ''}">${v === undefined || v === null ? '—' : v}</td>`;
                 }).join('');
                 const actions = canEdit ? `
                     <td class="text-right whitespace-nowrap">
@@ -91,11 +78,9 @@ VAC.UI = (function () {
                     </td>` : '<td></td>';
                 return `<tr>${cells}${actions}</tr>`;
             }).join('');
-
             tbody.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(b.dataset.edit));
             tbody.querySelectorAll('[data-del]').forEach(b => b.onclick = () => removeRow(b.dataset.del));
         }
-
         function formHTML(record) {
             return cfg.fields.map(f => {
                 const val = record ? (record[f.name] || '') : (f.default || '');
@@ -108,39 +93,30 @@ VAC.UI = (function () {
                         <input class="field-input" data-field="${f.name}" value="${val}" ${ro} placeholder="${f.placeholder || ''}"></div>`;
             }).join('');
         }
-
         function collect() {
             const data = {};
             document.querySelectorAll('#vac-modal-body [data-field]').forEach(el => { data[el.dataset.field] = el.value.trim(); });
             return data;
         }
-
         function openForm(id) {
             const record = id ? VAC.Storage.find(cfg.key, id) : null;
             VAC.UI.modal((record ? 'Edit ' : 'Add ') + cfg.singular, formHTML(record), () => {
                 const data = collect();
                 const rules = {};
-                cfg.fields.filter(f => f.required).forEach(f => {
-                    rules[f.name] = [{ test: VAC.Validate.required, message: 'Required' }];
-                });
+                cfg.fields.filter(f => f.required).forEach(f => { rules[f.name] = [{ test: VAC.Validate.required, message: 'Required' }]; });
                 const { valid, errors } = VAC.Validate.form(data, rules);
                 if (!valid) {
-                    document.querySelectorAll('#vac-modal-body [data-field]').forEach(el => {
-                        el.classList.toggle('field-error', !!errors[el.dataset.field]);
-                    });
+                    document.querySelectorAll('#vac-modal-body [data-field]').forEach(el => el.classList.toggle('field-error', !!errors[el.dataset.field]));
                     VAC.Toast.error('Please fill the required fields');
                     return;
                 }
-                if (!record && !data[cfg.idField]) {
-                    data[cfg.idField] = cfg.idPrefix + Date.now().toString().slice(-6);
-                }
+                if (!record && !data[cfg.idField]) data[cfg.idField] = cfg.idPrefix + Date.now().toString().slice(-6);
                 VAC.Storage.upsert(cfg.key, record ? { ...record, ...data } : data);
                 VAC.UI.closeModal();
                 VAC.Toast.success(cfg.singular + (record ? ' updated' : ' added'));
                 renderRows(container.querySelector('#crud-search').value);
             }, record ? 'Save changes' : 'Add');
         }
-
         function removeRow(id) {
             VAC.UI.confirm('Delete <b>' + id + '</b>? This cannot be undone.', () => {
                 VAC.Storage.remove(cfg.key, id);
@@ -149,13 +125,10 @@ VAC.UI = (function () {
             });
         }
 
-        // ---- Shell ----
         container.innerHTML = `
             <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">${cfg.title}</h1>
-                    <p class="text-sm text-gray-500">${cfg.subtitle}</p>
-                </div>
+                <div><h1 class="text-2xl font-bold text-slate-800">${cfg.title}</h1>
+                <p class="text-sm text-gray-500">${cfg.subtitle}</p></div>
                 <div class="flex gap-2">
                     <button class="btn btn-ghost" id="crud-export"><i class="fas fa-file-csv"></i> Export</button>
                     ${canEdit ? `<button class="btn btn-primary" id="crud-add"><i class="fas fa-plus"></i> Add ${cfg.singular}</button>` : ''}
@@ -166,24 +139,16 @@ VAC.UI = (function () {
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                     <input id="crud-search" class="field-input pl-9" placeholder="Search ${cfg.title.toLowerCase()}...">
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="vac-table">
-                        <thead><tr>
-                            ${cfg.columns.map(c => `<th>${c.label}</th>`).join('')}
-                            <th class="text-right">Actions</th>
-                        </tr></thead>
-                        <tbody id="crud-body"></tbody>
-                    </table>
-                </div>
+                <div class="overflow-x-auto"><table class="vac-table">
+                    <thead><tr>${cfg.columns.map(c => `<th>${c.label}</th>`).join('')}<th class="text-right">Actions</th></tr></thead>
+                    <tbody id="crud-body"></tbody>
+                </table></div>
             </div>`;
-
         container.querySelector('#crud-search').addEventListener('input', e => renderRows(e.target.value));
         const addBtn = container.querySelector('#crud-add');
         if (addBtn) addBtn.onclick = () => openForm(null);
         container.querySelector('#crud-export').onclick = () =>
-            VAC.Export.toCSV(currentRows(container.querySelector('#crud-search').value),
-                cfg.columns.map(c => c.field), cfg.key + '.csv');
-
+            VAC.Export.toCSV(currentRows(container.querySelector('#crud-search').value), cfg.columns.map(c => c.field), cfg.key + '.csv');
         renderRows('');
     }
 
@@ -194,20 +159,23 @@ VAC.UI = (function () {
    Router / navigation
    ------------------------------------------------------------------------ */
 VAC.App = (function () {
-    const ORDER = ['dashboard', 'reports', 'vehicles', 'operators', 'sites', 'settings'];
+    const TITLES = {
+        dashboard: 'Dashboard', analytics: 'Analytics & Reports', vehicles: 'Vehicles',
+        operators: 'Operators', sites: 'Sites', reports: 'Inspection Reports',
+        checklists: 'Inspection Checklist', faults: 'Fault List', workorders: 'Work Orders',
+        masters: 'Master Data', users: 'User Management', settings: 'Settings'
+    };
+    const ORDER = Object.keys(TITLES);
     let active = null;
 
     function setActiveNav(name) {
-        document.querySelectorAll('[data-nav]').forEach(a => {
-            a.classList.toggle('active', a.dataset.nav === name);
-        });
+        document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === name));
     }
 
     function navigate(name) {
         if (!ORDER.includes(name)) name = 'dashboard';
         const prev = VAC.Modules[active];
         if (prev && prev.destroy) prev.destroy();
-
         const container = document.getElementById('view-container');
         const mod = VAC.Modules[name];
         if (mod && mod.render) {
@@ -218,40 +186,51 @@ VAC.App = (function () {
         }
     }
 
+    function toggleSidebar() { document.body.classList.toggle('sidebar-collapsed'); }
+
     function buildHeader() {
         const user = VAC.Auth.currentUser() || {};
         const initials = (user.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
         const header = document.getElementById('portal-header');
         header.innerHTML = `
+            <button id="sidebar-toggle" class="text-slate-500 hover:text-slate-800 mr-4"><i class="fas fa-bars"></i></button>
             <span class="font-bold text-slate-700">VAC Admin Portal</span>
-            <div class="ml-auto flex items-center gap-4">
+            <div class="ml-auto flex items-center gap-3 relative">
                 <div class="text-right leading-tight hidden sm:block">
                     <div class="text-sm font-semibold text-slate-700">${user.name || 'User'}</div>
                     <div class="text-xs text-gray-400 capitalize">${user.role || ''}</div>
                 </div>
-                <div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">${initials}</div>
-                <button id="logout-btn" class="btn btn-ghost" title="Sign out"><i class="fas fa-right-from-bracket"></i></button>
+                <button id="account-btn" class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">${initials}</button>
+                <div id="account-menu" class="account-menu hidden">
+                    <div class="px-4 py-3 border-b">
+                        <div class="text-sm font-semibold text-slate-700">${user.name || 'User'}</div>
+                        <div class="text-xs text-gray-400">${user.email || ''}</div>
+                    </div>
+                    <a href="#" id="acct-settings"><i class="fas fa-cog text-gray-400"></i> Settings</a>
+                    <a href="#" id="acct-logout"><i class="fas fa-right-from-bracket text-gray-400"></i> Sign out</a>
+                </div>
             </div>`;
-        document.getElementById('logout-btn').onclick = () => VAC.Auth.logout();
+        document.getElementById('sidebar-toggle').onclick = toggleSidebar;
+        const menu = document.getElementById('account-menu');
+        document.getElementById('account-btn').onclick = (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); };
+        document.addEventListener('click', () => menu.classList.add('hidden'));
+        document.getElementById('acct-settings').onclick = (e) => { e.preventDefault(); navigate('settings'); };
+        document.getElementById('acct-logout').onclick = (e) => { e.preventDefault(); VAC.Auth.logout(); };
     }
 
     function init() {
-        if (!VAC.Auth.guard()) return;      // redirect to login if not authed
+        if (!VAC.Auth.guard()) return;
         VAC.Storage.init();
-        VAC.Seed.run();                     // ensure demo data exists
+        VAC.Seed.run();
         buildHeader();
-
-        // Refresh the active view when data changes elsewhere.
         window.addEventListener('vac-data-updated', () => {
-            const mod = VAC.Modules[active];
-            if (active === 'dashboard' && mod) mod.render(document.getElementById('view-container'));
+            if (active === 'dashboard') VAC.Modules.dashboard.render(document.getElementById('view-container'));
         });
-
         const start = (location.hash || '').replace('#', '') || 'dashboard';
         navigate(start);
     }
 
-    return { init, navigate };
+    return { init, navigate, toggleSidebar };
 })();
 
 document.addEventListener('DOMContentLoaded', VAC.App.init);

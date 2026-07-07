@@ -52,6 +52,38 @@ service cloud.firestore {
       allow update, delete: if isManagerOrAdmin();
     }
 
+    // ---- faults ----------------------------------------------------------
+    match /faults/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isManagerOrAdmin();
+    }
+
+    // ---- work orders -----------------------------------------------------
+    match /workorders/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isManagerOrAdmin();
+    }
+
+    // ---- schedule --------------------------------------------------------
+    match /schedule/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- inspection checklist --------------------------------------------
+    match /checklist/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- master data -----------------------------------------------------
+    match /masters/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
     // ---- settings: read for all signed-in, write for admins only ---------
     match /settings/{id} {
       allow read: if isSignedIn();
