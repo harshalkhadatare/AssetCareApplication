@@ -3,55 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAC | Admin Portal</title>
+    <title> Vision Infra - Admin Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Exact 1:1 HVI Theme Overrides */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f2f5; 
+        }
+        
+        /* Header Styling */
+        .hvi-header { 
+            background-color: #2c3e50; 
+            color: #ffffff; 
+            height: 50px;
+        }
+        .hvi-btn-white { 
+            background: #ffffff; 
+            color: #2c3e50; 
+            border-radius: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 28px; 
+            cursor: pointer; 
+            border: none;
+            transition: opacity 0.2s;
+        }
+        .hvi-btn-white:hover { opacity: 0.9; }
+
+        /* Sidebar Styling */
+        .hvi-sidebar { 
+            background-color: #ffffff; 
+            border-right: 1px solid #e2e8f0; 
+            width: 250px; 
+        }
+        .sidebar-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 12px 20px; 
+            color: #4a5568; 
+            font-size: 14px; 
+            border-left: 3px solid transparent; 
+            cursor: pointer; 
+            border-bottom: 1px solid #f8fafc;
+        }
+        .sidebar-item:hover { 
+            background-color: #f8fafc; 
+        }
+        .sidebar-item.active { 
+            background-color: #eef5ff; 
+            border-left-color: #0ea5e9; 
+            color: #0ea5e9; 
+            font-weight: 500; 
+        }
+        .sidebar-icon { 
+            width: 24px; 
+            text-align: left; 
+            margin-right: 10px; 
+            font-size: 15px; 
+        }
+    </style>
 </head>
-<body class="bg-slate-100">
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar (HVI-style, collapsible, grouped) -->
-        <aside class="sidebar bg-slate-900 text-white flex-shrink-0 flex flex-col z-20">
-            <div class="brand px-5 py-5 text-lg font-bold border-b border-slate-800 flex items-center gap-2 whitespace-nowrap">
-                <i class="fas fa-truck-fast text-blue-500"></i><span class="brand-text">VAC v1.0</span>
+<body class="flex flex-col h-screen overflow-hidden text-slate-800">
+
+    <header class="hvi-header flex items-center justify-between px-4 flex-shrink-0 z-30 shadow-sm relative">
+        <div class="flex items-center gap-3">
+            <button class="hvi-btn-white w-8 h-8 !p-0 shadow-sm"><i class="fas fa-bars text-[15px]"></i></button>
+            <div class="flex items-center gap-2 font-semibold text-[13px]">
+                <span>Sites :</span>
+                <select class="text-slate-800 rounded px-2 py-1 border-none outline-none w-32 font-normal shadow-sm h-7">
+                    <option>All</option>
+                </select>
             </div>
-            <nav class="flex-1 mt-2 px-3 overflow-y-auto pb-6">
-                <div class="nav-section-label">Overview</div>
-                <a href="#dashboard" data-nav="dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="nav-link"><i class="fas fa-th-large"></i><span class="nav-label">Dashboard</span></a>
-                <a href="#analytics" data-nav="analytics" onclick="VAC.App.navigate('analytics');return false;" class="nav-link"><i class="fas fa-chart-line"></i><span class="nav-label">Analytics</span></a>
+        </div>
 
-                <div class="nav-section-label">Fleet</div>
-                <a href="#vehicles" data-nav="vehicles" onclick="VAC.App.navigate('vehicles');return false;" class="nav-link"><i class="fas fa-truck"></i><span class="nav-label">Vehicles</span></a>
-                <a href="#operators" data-nav="operators" onclick="VAC.App.navigate('operators');return false;" class="nav-link"><i class="fas fa-user-gear"></i><span class="nav-label">Operators</span></a>
-                <a href="#sites" data-nav="sites" onclick="VAC.App.navigate('sites');return false;" class="nav-link"><i class="fas fa-location-dot"></i><span class="nav-label">Sites</span></a>
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
+            <div class="flex items-center justify-center font-bold italic tracking-tighter">
+                <span class="text-amber-400 text-xl">V</span>
+                <span class="text-blue-400 text-xl">A</span>
+                <span class="text-white text-xl">C</span>
+            </div>
+            <span class="font-bold tracking-wide text-[15px]">Vision Infra - V1.1</span>
+        </div>
 
-                <div class="nav-section-label">Inspections</div>
-                <a href="#reports" data-nav="reports" onclick="VAC.App.navigate('reports');return false;" class="nav-link"><i class="fas fa-clipboard-check"></i><span class="nav-label">Inspection Reports</span></a>
-                <a href="#checklists" data-nav="checklists" onclick="VAC.App.navigate('checklists');return false;" class="nav-link"><i class="fas fa-list-check"></i><span class="nav-label">Inspection Checklist</span></a>
-                <a href="#faults" data-nav="faults" onclick="VAC.App.navigate('faults');return false;" class="nav-link"><i class="fas fa-triangle-exclamation"></i><span class="nav-label">Fault List</span></a>
+        <div class="flex items-center gap-2">
+            <select class="text-slate-800 rounded px-2 py-1 text-[13px] border-none outline-none h-7 shadow-sm font-medium mr-1">
+                <option>English</option>
+            </select>
+            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-user text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-sync-alt text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-power-off text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-expand text-[13px]"></i></button>
+        </div>
+    </header>
 
-                <div class="nav-section-label">Maintenance</div>
-                <a href="#workorders" data-nav="workorders" onclick="VAC.App.navigate('workorders');return false;" class="nav-link"><i class="fas fa-screwdriver-wrench"></i><span class="nav-label">Work Orders</span></a>
-
-                <div class="nav-section-label">Administration</div>
-                <a href="#masters" data-nav="masters" onclick="VAC.App.navigate('masters');return false;" class="nav-link"><i class="fas fa-database"></i><span class="nav-label">Master Data</span></a>
-                <a href="#users" data-nav="users" onclick="VAC.App.navigate('users');return false;" class="nav-link"><i class="fas fa-users-gear"></i><span class="nav-label">User Management</span></a>
-                <a href="#settings" data-nav="settings" onclick="VAC.App.navigate('settings');return false;" class="nav-link"><i class="fas fa-cog"></i><span class="nav-label">Settings</span></a>
+    <div class="flex flex-1 overflow-hidden">
+        
+        <aside class="hvi-sidebar flex flex-col flex-shrink-0 z-20">
+            <nav class="flex-1 overflow-y-auto mt-0">
+                <a href="#dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-braille sidebar-icon text-slate-400"></i>
+                        <span>Dashboard</span>
+                    </div>
+                </a>
+                <a href="#reports" onclick="VAC.App.navigate('reports');return false;" class="sidebar-item active">
+                    <div class="flex items-center">
+                        <i class="fas fa-clipboard-check sidebar-icon"></i>
+                        <span>Inspection</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px]"></i>
+                </a>
+                <a href="#logbook" onclick="VAC.App.navigate('logbook');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-book sidebar-icon text-slate-400"></i>
+                        <span>Logbook</span>
+                    </div>
+                </a>
+                <a href="#fuel" onclick="VAC.App.navigate('fuel');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-gas-pump sidebar-icon text-slate-400"></i>
+                        <span>Fuel Management</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                </a>
+                <a href="#vehicles" onclick="VAC.App.navigate('vehicles');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-truck sidebar-icon text-slate-400"></i>
+                        <span>Vehicles</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                </a>
+                <a href="#masters" onclick="VAC.App.navigate('masters');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-cogs sidebar-icon text-slate-400"></i>
+                        <span>Master Data</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                </a>
             </nav>
-            <div class="sidebar-foot px-5 py-3 text-[11px] text-slate-500 border-t border-slate-800 whitespace-nowrap">
-                Vision Infra Equipment Solutions ltd
+            
+            <div class="border-t border-slate-200">
+                <a href="#analytics" onclick="VAC.App.navigate('analytics');return false;" class="sidebar-item">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-line sidebar-icon text-slate-400"></i>
+                        <span>Analytics Report & KPIs</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                </a>
             </div>
         </aside>
 
-        <!-- Main -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            <header id="portal-header" class="h-[64px] bg-white border-b flex items-center px-6 flex-shrink-0"></header>
-            <div id="view-container" class="flex-1 overflow-y-auto p-8"></div>
-        </main>
+        <main class="flex-1 overflow-y-auto p-5" id="view-container">
+            </main>
     </div>
 
-    <!-- App scripts (classic order; no bundler needed) -->
     <script src="js/firebase-config.js"></script>
     <script src="js/utils/storage.js"></script>
     <script src="js/utils/notifications.js"></script>
@@ -59,7 +170,8 @@
     <script src="js/utils/exporters.js"></script>
     <script src="js/data/seed.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/modules/dashboard.js?v=20260708-7"></script>
+    
+    <script src="js/modules/dashboard.js"></script>
     <script src="js/modules/analytics.js"></script>
     <script src="js/modules/vehicles.js"></script>
     <script src="js/modules/operators.js"></script>
@@ -72,11 +184,5 @@
     <script src="js/modules/users.js"></script>
     <script src="js/modules/settings.js"></script>
     <script src="js/app.js"></script>
-
-    <!-- To enable Firebase, uncomment these and set useFirebase:true in js/firebase-config.js
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    -->
 </body>
 </html>
