@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// ===========================================================================
+// Vision Asset Care — Cloud Firestore Security Rules
+//
+// Role-based access control. Each authenticated user is expected to have a
+// document at /users/{uid} containing a `role` field: "admin" | "manager" |
+// "operator". Adjust collection names/fields to match your data model.
+// ===========================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- helpers ----------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function hasRole(role) {
+      return isSignedIn() && userRole() == role;
+    }
+    function isManagerOrAdmin() {
+      return isSignedIn() && (userRole() == 'admin' || userRole() == 'manager');
+    }
+
+    // ---- users: a user can read own profile; only admins manage users -----
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isManagerOrAdmin());
+      allow create, update, delete: if hasRole('admin');
+    }
+
+    // ---- fleet master data: all signed-in can read; managers/admins write -
+    match /vehicles/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+    match /operators/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+    match /sites/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- inspection reports ----------------------------------------------
+    // Operators create reports; managers/admins can review (update status).
+    match /reports/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isManagerOrAdmin();
+    }
+
+    // ---- faults ----------------------------------------------------------
+    match /faults/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isManagerOrAdmin();
+    }
+
+    // ---- work orders -----------------------------------------------------
+    match /workorders/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isManagerOrAdmin();
+    }
+
+    // ---- schedule --------------------------------------------------------
+    match /schedule/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- inspection checklist --------------------------------------------
+    match /checklist/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- master data -----------------------------------------------------
+    match /masters/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // ---- settings: read for all signed-in, write for admins only ---------
+    match /settings/{id} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('admin');
+    }
+
+    // ---- deny everything else --------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

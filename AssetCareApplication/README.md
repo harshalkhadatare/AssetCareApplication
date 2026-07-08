@@ -1,0 +1,115 @@
+# Vision Asset Care (VAC) v1.0 — Web Admin Portal
+
+Fleet Inspection & Asset Management System for **Vision Infra Equipment Solutions Ltd. (VIESL)**.
+
+This repo contains the **Web Admin Portal** (HTML / CSS / JavaScript) plus the
+Firebase backend scaffolding (Firestore rules, indexes, Cloud Functions).
+
+---
+
+## What changed in this pass
+
+The portal was reorganized and made **fully working out of the box**:
+
+- **Fixed a broken file** — `style.css` previously contained JavaScript. It is now a
+  real stylesheet; the dashboard logic moved to `js/modules/dashboard.js`.
+- **Restructured source** — app code moved out of `.vscode/` (an editor folder) into
+  a proper `css/` + `js/` layout with `utils/`, `modules/`, and `data/`.
+- **Authentication added** (your immediate focus): login page, session management,
+  route guard, and role-based access — working locally now, and ready to switch to
+  Firebase Auth by flipping one flag.
+- **HVI-structured portal** — collapsible grouped sidebar and a dashboard with
+  Vehicle Status, Inspection Summary, Work Order Summary and Upcoming Schedule,
+  matching the HVI portal model.
+- **Every module is wired to data** — Dashboard, Analytics (date-range exports),
+  Vehicles, Operators, Sites, Inspection Reports, Fault List, Work Orders,
+  User Management and Settings all read/write through a storage layer with real
+  search, filters, CRUD, approve/reject workflows, CSV export and seeded data.
+- **Role-based Firestore rules** replaced the insecure "allow all" default.
+
+---
+
+## Run it
+
+The portal uses ES-friendly classic scripts, so any static server works:
+
+```bash
+# from the project root
+python3 -m http.server 8080
+# then open http://localhost:8080
+```
+
+(You can also just open `index.html`, but a local server is recommended.)
+
+**Demo accounts**
+
+| Email               | Password    | Role    |
+|---------------------|-------------|---------|
+| admin@viesl.com     | admin123    | admin   |
+| manager@viesl.com   | manager123  | manager |
+
+---
+
+## Project structure
+
+```
+Vision Asset Care/
+├── index.html              # Login page (entry point / auth gate)
+├── app.html                # Portal shell (protected)
+├── css/style.css           # Real stylesheet
+├── js/
+│   ├── firebase-config.js  # Firebase config + useFirebase flag
+│   ├── auth.js             # Login / logout / session / guard / roles
+│   ├── app.js              # Router + shared UI (modal, confirm, CRUD engine)
+│   ├── utils/              # storage, notifications, validation, exporters
+│   ├── data/seed.js        # Demo data seeding
+│   └── modules/            # dashboard, analytics, vehicles, operators, sites,
+│                           #   reports, faults, workorders, users, settings
+├── assets/                 # fonts, images
+├── firestore.rules         # Role-based security rules
+├── firestore.indexes.json  # Firestore indexes
+└── functions/              # Cloud Functions (run `npm install` inside to build)
+```
+
+> `functions/node_modules` is **not** included (it is regenerated with
+> `npm install` and was ~140 MB). Run `cd functions && npm install` when you
+> need to work on Cloud Functions.
+
+---
+
+## Portal modules (HVI-structured)
+
+| Group          | Module            | What it does                                             |
+|----------------|-------------------|---------------------------------------------------------|
+| Overview       | Dashboard         | Vehicle/Inspection/Work Order summaries + charts         |
+| Overview       | Analytics         | KPIs + date-range report exports (CSV/Excel)             |
+| Fleet          | Vehicles          | Vehicle CRUD, search, export                             |
+| Fleet          | Operators         | Operator CRUD, search, export                            |
+| Fleet          | Sites             | Site CRUD, search, export                                |
+| Inspections    | Inspection Reports| Review, filter, approve/reject, export                   |
+| Inspections    | Fault List        | Flagged faults, severity, resolve/reopen, export         |
+| Maintenance    | Work Orders       | Requests with approve/reject/complete workflow           |
+| Administration | User Management   | Portal users & roles (admin only)                        |
+| Administration | Settings          | Company profile, theme, reset demo data                  |
+
+Access is role-aware: **admins** manage everything (incl. users), **managers**
+manage fleet data and review inspections/work orders, and read access is open to
+any signed-in user.
+
+---
+
+## Switching to real Firebase
+
+The app runs in **local mode** by default so it works with zero setup. To connect
+the real backend:
+
+1. Create a Firebase project + Web App, and paste the config into
+   `js/firebase-config.js`.
+2. Set `VAC_CONFIG.useFirebase = true` in that file.
+3. Uncomment the Firebase SDK `<script>` tags at the bottom of `index.html` and
+   `app.html`.
+
+`js/auth.js` already branches on the flag — local auth becomes Firebase Auth with
+no other change. The data layer in `js/utils/storage.js` is the single place to
+swap `localStorage` calls for Firestore reads/writes when you connect the modules
+to live data.
