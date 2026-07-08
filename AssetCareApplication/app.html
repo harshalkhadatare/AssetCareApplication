@@ -1,26 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Vision Infra - Admin Portal</title>
+    <title>VAC Vision Infra - Admin Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind for class-based Dark Mode
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    
     <style>
-        /* Exact 1:1 HVI Theme Overrides */
+        /* Global Smooth Transitions for Theme Switching */
+        *, *::before, *::after {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f0f2f5; 
         }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
         /* Header Styling */
         .hvi-header { 
             background-color: #2c3e50; 
-            color: #ffffff; 
             height: 50px;
         }
+        .dark .hvi-header { background-color: #0f172a; border-bottom: 1px solid #1e293b; }
+        
         .hvi-btn-white { 
             background: #ffffff; 
             color: #2c3e50; 
@@ -31,158 +48,245 @@
             height: 28px; 
             cursor: pointer; 
             border: none;
-            transition: opacity 0.2s;
         }
-        .hvi-btn-white:hover { opacity: 0.9; }
+        .dark .hvi-btn-white { background: #334155; color: #f8fafc; }
+        .hvi-btn-white:hover { opacity: 0.9; transform: scale(1.02); }
 
         /* Sidebar Styling */
-        .hvi-sidebar { 
-            background-color: #ffffff; 
-            border-right: 1px solid #e2e8f0; 
-            width: 250px; 
-        }
         .sidebar-item { 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
             padding: 12px 20px; 
-            color: #4a5568; 
             font-size: 14px; 
             border-left: 3px solid transparent; 
             cursor: pointer; 
-            border-bottom: 1px solid #f8fafc;
         }
-        .sidebar-item:hover { 
-            background-color: #f8fafc; 
-        }
+        .sidebar-item:hover { background-color: #f8fafc; }
+        .dark .sidebar-item:hover { background-color: #1e293b; }
+        
         .sidebar-item.active { 
             background-color: #eef5ff; 
             border-left-color: #0ea5e9; 
             color: #0ea5e9; 
             font-weight: 500; 
         }
-        .sidebar-icon { 
-            width: 24px; 
-            text-align: left; 
-            margin-right: 10px; 
-            font-size: 15px; 
-        }
+        .dark .sidebar-item.active { background-color: #0f172a; border-left-color: #38bdf8; color: #38bdf8; }
+        
+        /* Submenu Styling */
+        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #f8fafc; }
+        .dark .submenu { background: #0f172a; }
+        .submenu.expanded { max-height: 500px; }
+        .submenu-item { padding: 10px 20px 10px 45px; font-size: 13px; display: block; cursor: pointer; }
+        .submenu-item:hover { color: #0ea5e9; }
+
+        /* Toast Notification System */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 12px 20px; border-radius: 6px; color: white; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease forwards; }
+        .toast.success { background-color: #10b981; }
+        .toast.info { background-color: #3b82f6; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; } }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden text-slate-800">
+<body class="flex flex-col h-screen overflow-hidden bg-[#f0f2f5] dark:bg-slate-950 text-slate-800 dark:text-slate-200">
 
-    <header class="hvi-header flex items-center justify-between px-4 flex-shrink-0 z-30 shadow-sm relative">
+    <div id="toast-container"></div>
+
+    <header class="hvi-header flex items-center justify-between px-4 flex-shrink-0 z-30 shadow-sm relative text-white">
         <div class="flex items-center gap-3">
-            <button class="hvi-btn-white w-8 h-8 !p-0 shadow-sm"><i class="fas fa-bars text-[15px]"></i></button>
+            <button id="sidebar-toggle" class="hvi-btn-white w-8 h-8 !p-0 shadow-sm"><i class="fas fa-bars text-[15px]"></i></button>
             <div class="flex items-center gap-2 font-semibold text-[13px]">
                 <span>Sites :</span>
-                <select class="text-slate-800 rounded px-2 py-1 border-none outline-none w-32 font-normal shadow-sm h-7">
-                    <option>All</option>
+                <select id="global-site-selector" class="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 rounded px-2 py-1 border-none outline-none w-32 font-normal shadow-sm h-7">
+                    <option value="all">All</option>
+                    <option value="site1">Site Alpha</option>
+                    <option value="site2">Site Beta</option>
                 </select>
             </div>
         </div>
 
-        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 cursor-pointer" onclick="VAC.App.navigate('dashboard')">
             <div class="flex items-center justify-center font-bold italic tracking-tighter">
-                <span class="text-amber-400 text-xl">V</span>
-                <span class="text-blue-400 text-xl">A</span>
-                <span class="text-white text-xl">C</span>
+                <span class="text-amber-400 text-xl">V</span><span class="text-blue-400 text-xl">A</span><span class="text-white text-xl">C</span>
             </div>
-            <span class="font-bold tracking-wide text-[15px]">Vision Infra - V1.1</span>
+            <span class="font-bold tracking-wide text-[15px]">Vision Infra - V.0</span>
         </div>
 
         <div class="flex items-center gap-2">
-            <select class="text-slate-800 rounded px-2 py-1 text-[13px] border-none outline-none h-7 shadow-sm font-medium mr-1">
-                <option>English</option>
+            <select id="global-lang-selector" class="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 rounded px-2 py-1 text-[13px] border-none outline-none h-7 shadow-sm font-medium mr-1">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
             </select>
-            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-user text-[13px]"></i></button>
-            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-sync-alt text-[13px]"></i></button>
-            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-power-off text-[13px]"></i></button>
-            <button class="hvi-btn-white w-7 shadow-sm"><i class="fas fa-expand text-[13px]"></i></button>
+            <button id="theme-toggle" class="hvi-btn-white w-7 shadow-sm" title="Toggle Light/Dark Mode"><i class="fas fa-moon text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm" onclick="showToast('Profile opened', 'info')" title="User Profile"><i class="fas fa-user text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm" onclick="location.reload()" title="Refresh Application"><i class="fas fa-sync-alt text-[13px]"></i></button>
+            <button class="hvi-btn-white w-7 shadow-sm" onclick="showToast('Logging out...', 'info')" title="Logout"><i class="fas fa-power-off text-[13px]"></i></button>
+            <button id="fullscreen-toggle" class="hvi-btn-white w-7 shadow-sm" title="Toggle Fullscreen"><i class="fas fa-expand text-[13px]"></i></button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <aside class="hvi-sidebar flex flex-col flex-shrink-0 z-20">
+        <aside id="main-sidebar" class="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 w-[250px] flex flex-col flex-shrink-0 z-20 transition-all duration-300">
             <nav class="flex-1 overflow-y-auto mt-0">
-                <a href="#dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-braille sidebar-icon text-slate-400"></i>
-                        <span>Dashboard</span>
-                    </div>
+                <a href="#dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="sidebar-item active text-slate-600 dark:text-slate-400">
+                    <div class="flex items-center"><i class="fas fa-braille w-6 text-left"></i><span>Dashboard</span></div>
                 </a>
-                <a href="#reports" onclick="VAC.App.navigate('reports');return false;" class="sidebar-item active">
-                    <div class="flex items-center">
-                        <i class="fas fa-clipboard-check sidebar-icon"></i>
-                        <span>Inspection</span>
+                
+                <div class="sidebar-accordion">
+                    <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
+                        <div class="flex items-center"><i class="fas fa-clipboard-check w-6 text-left"></i><span>Inspection</span></div>
+                        <i class="fas fa-chevron-down text-[10px] transition-transform"></i>
                     </div>
-                    <i class="fas fa-chevron-right text-[10px]"></i>
-                </a>
-                <a href="#logbook" onclick="VAC.App.navigate('logbook');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-book sidebar-icon text-slate-400"></i>
-                        <span>Logbook</span>
+                    <div class="submenu expanded">
+                        <a href="#reports" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Inspection Report', 'info')">Inspection Report</a>
+                        <a href="#checklists" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Inspection Checklist', 'info')">Inspection Checklist</a>
+                        <a href="#reminder" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Reminder', 'info')">Reminder</a>
+                        <a href="#adhoc" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Ad Hoc Inspection', 'info')">Ad Hoc Inspection</a>
                     </div>
+                </div>
+
+                <a href="#logbook" onclick="showToast('Navigating to Logbook', 'info')" class="sidebar-item text-slate-600 dark:text-slate-400">
+                    <div class="flex items-center"><i class="fas fa-book w-6 text-left"></i><span>Logbook</span></div>
                 </a>
-                <a href="#fuel" onclick="VAC.App.navigate('fuel');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-gas-pump sidebar-icon text-slate-400"></i>
-                        <span>Fuel Management</span>
+                
+                <div class="sidebar-accordion">
+                    <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
+                        <div class="flex items-center"><i class="fas fa-gas-pump w-6 text-left"></i><span>Fuel Management</span></div>
+                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
                     </div>
-                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
-                </a>
-                <a href="#vehicles" onclick="VAC.App.navigate('vehicles');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-truck sidebar-icon text-slate-400"></i>
-                        <span>Vehicles</span>
+                    <div class="submenu">
+                        <a href="#fuel-logger" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Fuel Logger', 'info')">Fuel Logger</a>
                     </div>
-                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
-                </a>
-                <a href="#masters" onclick="VAC.App.navigate('masters');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-cogs sidebar-icon text-slate-400"></i>
-                        <span>Master Data</span>
+                </div>
+
+                <div class="sidebar-accordion">
+                    <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
+                        <div class="flex items-center"><i class="fas fa-truck w-6 text-left"></i><span>Vehicles</span></div>
+                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
                     </div>
-                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
-                </a>
+                    <div class="submenu">
+                        <a href="#vehicles-list" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Vehicles List', 'info')">Vehicles</a>
+                        <a href="#vehicles-overview" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Vehicles Overview', 'info')">Vehicles Overview</a>
+                    </div>
+                </div>
+
+                <div class="sidebar-accordion">
+                    <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
+                        <div class="flex items-center"><i class="fas fa-cogs w-6 text-left"></i><span>Master Data</span></div>
+                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#team" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Team Management', 'info')">Team Management</a>
+                        <a href="#project" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Site Project', 'info')">Site Project</a>
+                        <a href="#account" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Account', 'info')">Account</a>
+                    </div>
+                </div>
             </nav>
             
-            <div class="border-t border-slate-200">
-                <a href="#analytics" onclick="VAC.App.navigate('analytics');return false;" class="sidebar-item">
-                    <div class="flex items-center">
-                        <i class="fas fa-chart-line sidebar-icon text-slate-400"></i>
-                        <span>Analytics Report & KPIs</span>
-                    </div>
-                    <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+            <div class="border-t border-slate-200 dark:border-slate-800">
+                <a href="#analytics" onclick="showToast('Navigating to Analytics', 'info')" class="sidebar-item text-slate-600 dark:text-slate-400">
+                    <div class="flex items-center"><i class="fas fa-chart-line w-6 text-left"></i><span>Analytics Report & KPIs</span></div>
+                    <i class="fas fa-chevron-right text-[10px]"></i>
                 </a>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-5" id="view-container">
-            </main>
+        <main class="flex-1 overflow-y-auto p-5 relative" id="view-container"></main>
     </div>
 
-    <script src="js/firebase-config.js"></script>
-    <script src="js/utils/storage.js"></script>
-    <script src="js/utils/notifications.js"></script>
-    <script src="js/utils/validation.js"></script>
-    <script src="js/utils/exporters.js"></script>
-    <script src="js/data/seed.js"></script>
-    <script src="js/auth.js"></script>
-    
+    <script>
+        // Global Mock Namespace (if dependencies aren't loaded yet)
+        window.VAC = window.VAC || { App: { navigate: (path) => console.log('Navigating to', path) } };
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} mr-2"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // Theme Management Logic
+        const html = document.documentElement;
+        const themeBtn = document.getElementById('theme-toggle');
+        const themeIcon = themeBtn.querySelector('i');
+
+        function setTheme(isDark) {
+            if (isDark) {
+                html.classList.add('dark');
+                themeIcon.className = 'fas fa-sun text-[13px]';
+                localStorage.setItem('hvi-theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                themeIcon.className = 'fas fa-moon text-[13px]';
+                localStorage.setItem('hvi-theme', 'light');
+            }
+            // Dispatch event so Chart.js instances can re-render with dark mode colors
+            window.dispatchEvent(new Event('themeChanged'));
+        }
+
+        // Initialize Theme
+        if (localStorage.getItem('hvi-theme') === 'dark' || (!('hvi-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setTheme(true);
+        }
+
+        themeBtn.addEventListener('click', () => setTheme(!html.classList.contains('dark')));
+
+        // Fullscreen Toggle Logic
+        document.getElementById('fullscreen-toggle').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => showToast(`Error attempting to enable fullscreen: ${err.message}`, 'info'));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Sidebar Submenu Accordion Logic
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            const icon = element.querySelector('.fa-chevron-right, .fa-chevron-down');
+            
+            // Close all other submenus
+            document.querySelectorAll('.submenu').forEach(menu => {
+                if(menu !== submenu && menu.classList.contains('expanded')) {
+                    menu.classList.remove('expanded');
+                    const otherIcon = menu.previousElementSibling.querySelector('.fa-chevron-down');
+                    if(otherIcon) { otherIcon.classList.remove('fa-chevron-down'); otherIcon.classList.add('fa-chevron-right'); }
+                }
+            });
+
+            // Toggle current
+            submenu.classList.toggle('expanded');
+            if(submenu.classList.contains('expanded')) {
+                icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down');
+            } else {
+                icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right');
+            }
+        }
+
+        // Sidebar Mobile/Collapse Toggle
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            const sidebar = document.getElementById('main-sidebar');
+            const currentWidth = sidebar.style.width;
+            sidebar.style.width = currentWidth === '0px' ? '250px' : '0px';
+        });
+
+        // Global Selectors Interactivity
+        document.getElementById('global-site-selector').addEventListener('change', (e) => showToast(`Site context changed to: ${e.target.options[e.target.selectedIndex].text}`, 'info'));
+        document.getElementById('global-lang-selector').addEventListener('change', (e) => showToast(`Language changed to: ${e.target.options[e.target.selectedIndex].text}`, 'info'));
+
+    </script>
+
     <script src="js/modules/dashboard.js"></script>
-    <script src="js/modules/analytics.js"></script>
-    <script src="js/modules/vehicles.js"></script>
-    <script src="js/modules/operators.js"></script>
-    <script src="js/modules/sites.js"></script>
-    <script src="js/modules/reports.js"></script>
-    <script src="js/modules/checklists.js"></script>
-    <script src="js/modules/faults.js"></script>
-    <script src="js/modules/workorders.js"></script>
-    <script src="js/modules/masters.js"></script>
-    <script src="js/modules/users.js"></script>
-    <script src="js/modules/settings.js"></script>
-    <script src="js/app.js"></script>
+    <script>
+        // Auto-initialize the dashboard for preview if VAC router isn't active
+        document.addEventListener('DOMContentLoaded', () => {
+            if (VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render();
+        });
+    </script>
 </body>
 </html>
