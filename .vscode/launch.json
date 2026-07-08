@@ -1,0 +1,14 @@
+{
+    // Launch the VAC portal in Chrome against a local static server.
+    // Start one first, e.g.:  python3 -m http.server 8080
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch VAC (Chrome @ localhost:8080)",
+            "url": "http://localhost:8080/index.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
