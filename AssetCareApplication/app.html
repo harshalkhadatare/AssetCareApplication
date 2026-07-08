@@ -3,84 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAC Vision Infra - Admin Portal</title>
+    <title>HVI Vision Infra - Admin Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Configure Tailwind for class-based Dark Mode
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: {} }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: {} } }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Global Smooth Transitions for Theme Switching */
-        *, *::before, *::after {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-
-        /* Scrollbar Styling */
+        *, *::before, *::after { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
-        /* Header Styling */
-        .hvi-header { 
-            background-color: #2c3e50; 
-            height: 50px;
-        }
+        .hvi-header { background-color: #2c3e50; height: 50px; }
         .dark .hvi-header { background-color: #0f172a; border-bottom: 1px solid #1e293b; }
         
-        .hvi-btn-white { 
-            background: #ffffff; 
-            color: #2c3e50; 
-            border-radius: 4px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 28px; 
-            cursor: pointer; 
-            border: none;
-        }
+        .hvi-btn-white { background: #ffffff; color: #2c3e50; border-radius: 4px; display: flex; align-items: center; justify-content: center; height: 28px; cursor: pointer; border: none; }
         .dark .hvi-btn-white { background: #334155; color: #f8fafc; }
         .hvi-btn-white:hover { opacity: 0.9; transform: scale(1.02); }
 
-        /* Sidebar Styling */
-        .sidebar-item { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            border-left: 3px solid transparent; 
-            cursor: pointer; 
-        }
+        .sidebar-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; font-size: 14px; border-left: 3px solid transparent; cursor: pointer; }
         .sidebar-item:hover { background-color: #f8fafc; }
         .dark .sidebar-item:hover { background-color: #1e293b; }
-        
-        .sidebar-item.active { 
-            background-color: #eef5ff; 
-            border-left-color: #0ea5e9; 
-            color: #0ea5e9; 
-            font-weight: 500; 
-        }
+        .sidebar-item.active { background-color: #eef5ff; border-left-color: #0ea5e9; color: #0ea5e9; font-weight: 500; }
         .dark .sidebar-item.active { background-color: #0f172a; border-left-color: #38bdf8; color: #38bdf8; }
         
-        /* Submenu Styling */
         .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #f8fafc; }
         .dark .submenu { background: #0f172a; }
         .submenu.expanded { max-height: 500px; }
         .submenu-item { padding: 10px 20px 10px 45px; font-size: 13px; display: block; cursor: pointer; }
         .submenu-item:hover { color: #0ea5e9; }
 
-        /* Toast Notification System */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 12px 20px; border-radius: 6px; color: white; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease forwards; }
         .toast.success { background-color: #10b981; }
@@ -93,41 +50,79 @@
 
     <div id="toast-container"></div>
 
-    <header class="hvi-header flex items-center justify-between px-4 flex-shrink-0 z-30 shadow-sm relative text-white">
+    <header class="hvi-header flex items-center justify-between px-4 flex-shrink-0 z-40 shadow-sm relative text-white">
         <div class="flex items-center gap-3">
             <button id="sidebar-toggle" class="hvi-btn-white w-8 h-8 !p-0 shadow-sm"><i class="fas fa-bars text-[15px]"></i></button>
             <div class="flex items-center gap-2 font-semibold text-[13px]">
-                <span>Sites :</span>
+                <span data-i18n="sites">Sites :</span>
                 <select id="global-site-selector" class="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 rounded px-2 py-1 border-none outline-none w-32 font-normal shadow-sm h-7">
-                    <option value="all">All</option>
+                    <option value="all" data-i18n="all">All</option>
                     <option value="site1">Site Alpha</option>
-                    <option value="site2">Site Beta</option>
                 </select>
             </div>
         </div>
 
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 cursor-pointer" onclick="VAC.App.navigate('dashboard')">
             <div class="flex items-center justify-center font-bold italic tracking-tighter">
-                <span class="text-amber-400 text-xl">V</span><span class="text-blue-400 text-xl">A</span><span class="text-white text-xl">C</span>
+                <span class="text-amber-400 text-xl">H</span><span class="text-blue-400 text-xl">V</span><span class="text-white text-xl">I</span>
             </div>
-            <span class="font-bold tracking-wide text-[15px]">Vision Infra - V.0</span>
+            <span class="font-bold tracking-wide text-[15px]">Vision Infra - V1.1</span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 relative">
             <select id="global-lang-selector" class="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 rounded px-2 py-1 text-[13px] border-none outline-none h-7 shadow-sm font-medium mr-1">
                 <option value="en">English</option>
-                <option value="hi">Hindi</option>
+                <option value="es">Español</option>
+                <option value="hi">हिंदी</option>
             </select>
+            
             <button id="theme-toggle" class="hvi-btn-white w-7 shadow-sm" title="Toggle Light/Dark Mode"><i class="fas fa-moon text-[13px]"></i></button>
-            <button class="hvi-btn-white w-7 shadow-sm" onclick="showToast('Profile opened', 'info')" title="User Profile"><i class="fas fa-user text-[13px]"></i></button>
+            <button id="profile-toggle" class="hvi-btn-white w-7 shadow-sm" title="User Profile"><i class="fas fa-user text-[13px]"></i></button>
             <button class="hvi-btn-white w-7 shadow-sm" onclick="location.reload()" title="Refresh Application"><i class="fas fa-sync-alt text-[13px]"></i></button>
-            <button class="hvi-btn-white w-7 shadow-sm" onclick="showToast('Logging out...', 'info')" title="Logout"><i class="fas fa-power-off text-[13px]"></i></button>
+            <button id="logout-btn" class="hvi-btn-white w-7 shadow-sm" title="Logout"><i class="fas fa-power-off text-[13px]"></i></button>
             <button id="fullscreen-toggle" class="hvi-btn-white w-7 shadow-sm" title="Toggle Fullscreen"><i class="fas fa-expand text-[13px]"></i></button>
+
+            <div id="profile-dropdown" class="hidden absolute top-10 right-16 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden transition-opacity">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-lg">
+                        JD
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 dark:text-white text-sm">John Doe</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Fleet Admin</p>
+                    </div>
+                </div>
+                <div class="p-2 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-envelope w-4"></i> admin@visioninfra.com</div>
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-phone w-4"></i> +1 234 567 8900</div>
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-map-marker-alt w-4"></i> Global Access</div>
+                </div>
+                <div class="p-1">
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-id-badge w-5 text-slate-400"></i> View Profile</button>
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-user-edit w-5 text-slate-400"></i> Edit Profile</button>
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-key w-5 text-slate-400"></i> Change Password</button>
+                </div>
+            </div>
         </div>
     </header>
 
+    <div id="logout-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-sign-out-alt text-2xl text-rose-500"></i>
+                </div>
+                <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-2" data-i18n="logout_confirm">Ready to Leave?</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6" data-i18n="logout_text">Are you sure you want to log out of your session?</p>
+                <div class="flex gap-3">
+                    <button id="cancel-logout" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition" data-i18n="cancel">Cancel</button>
+                    <button id="confirm-logout" class="flex-1 px-4 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-medium transition shadow-sm" data-i18n="logout">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="flex flex-1 overflow-hidden">
-        
         <aside id="main-sidebar" class="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 w-[250px] flex flex-col flex-shrink-0 z-20 transition-all duration-300">
             <nav class="flex-1 overflow-y-auto mt-0">
                 <a href="#dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="sidebar-item active text-slate-600 dark:text-slate-400">
@@ -197,11 +192,9 @@
     </div>
 
     <script>
-        // Global Mock Namespace (if dependencies aren't loaded yet)
-        window.VAC = window.VAC || { App: { navigate: (path) => console.log('Navigating to', path) } };
-
-        // Toast Notification System
-        function showToast(message, type = 'success') {
+        // Utilities
+        window.VAC = window.VAC || { App: { navigate: (path) => console.log('Nav:', path) } };
+        window.showToast = function(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -210,83 +203,90 @@
             setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // Theme Management Logic
+        // --- FEATURE 3: Dynamic Language Selector ---
+        const translations = {
+            en: { sites: "Sites :", all: "All", nav_dashboard: "Dashboard", nav_inspection: "Inspection", nav_logbook: "Logbook", logout_confirm: "Ready to Leave?", logout_text: "Are you sure you want to log out of your session?", cancel: "Cancel", logout: "Logout" },
+            es: { sites: "Sitios :", all: "Todos", nav_dashboard: "Tablero", nav_inspection: "Inspección", nav_logbook: "Bitácora", logout_confirm: "¿Listo para salir?", logout_text: "¿Estás seguro de que quieres cerrar tu sesión?", cancel: "Cancelar", logout: "Cerrar sesión" },
+            hi: { sites: "साइटें :", all: "सभी", nav_dashboard: "डैशबोर्ड", nav_inspection: "निरीक्षण", nav_logbook: "लॉगबुक", logout_confirm: "जाने के लिए तैयार?", logout_text: "क्या आप वाकई अपना सत्र लॉग आउट करना चाहते हैं?", cancel: "रद्द करें", logout: "लॉग आउट" }
+        };
+
+        const langSelector = document.getElementById('global-lang-selector');
+        const savedLang = localStorage.getItem('hvi-lang') || 'en';
+        langSelector.value = savedLang;
+
+        function updateLanguage(lang) {
+            localStorage.setItem('hvi-lang', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            window.showToast(`Language updated`, 'success');
+            // Trigger dashboard re-render if it exists to translate dynamic widgets
+            if(VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render();
+        }
+        updateLanguage(savedLang); // Init
+        langSelector.addEventListener('change', (e) => updateLanguage(e.target.value));
+        window.getCurrentLang = () => langSelector.value; // Helper for dashboard
+
+        // --- FEATURE 4: Logout Functionality ---
+        const logoutBtn = document.getElementById('logout-btn');
+        const logoutModal = document.getElementById('logout-modal');
+        const modalContent = logoutModal.querySelector('div');
+        const cancelLogout = document.getElementById('cancel-logout');
+        const confirmLogout = document.getElementById('confirm-logout');
+
+        logoutBtn.addEventListener('click', () => {
+            logoutModal.classList.remove('hidden');
+            setTimeout(() => { logoutModal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
+        });
+        const closeLogoutModal = () => {
+            logoutModal.classList.add('opacity-0'); modalContent.classList.add('scale-95');
+            setTimeout(() => logoutModal.classList.add('hidden'), 300);
+        };
+        cancelLogout.addEventListener('click', closeLogoutModal);
+        confirmLogout.addEventListener('click', () => {
+            sessionStorage.clear(); // Clear mock session
+            window.location.href = 'index.html'; // Redirect to login
+        });
+
+        // --- FEATURE 5: User Profile Dropdown ---
+        const profileBtn = document.getElementById('profile-toggle');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Other utilities (Theme, Fullscreen, Sidebar)
         const html = document.documentElement;
         const themeBtn = document.getElementById('theme-toggle');
         const themeIcon = themeBtn.querySelector('i');
-
         function setTheme(isDark) {
-            if (isDark) {
-                html.classList.add('dark');
-                themeIcon.className = 'fas fa-sun text-[13px]';
-                localStorage.setItem('hvi-theme', 'dark');
-            } else {
-                html.classList.remove('dark');
-                themeIcon.className = 'fas fa-moon text-[13px]';
-                localStorage.setItem('hvi-theme', 'light');
-            }
-            // Dispatch event so Chart.js instances can re-render with dark mode colors
+            if (isDark) { html.classList.add('dark'); themeIcon.className = 'fas fa-sun text-[13px]'; localStorage.setItem('hvi-theme', 'dark'); } 
+            else { html.classList.remove('dark'); themeIcon.className = 'fas fa-moon text-[13px]'; localStorage.setItem('hvi-theme', 'light'); }
             window.dispatchEvent(new Event('themeChanged'));
         }
-
-        // Initialize Theme
-        if (localStorage.getItem('hvi-theme') === 'dark' || (!('hvi-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            setTheme(true);
-        }
-
+        if (localStorage.getItem('hvi-theme') === 'dark' || (!('hvi-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) setTheme(true);
         themeBtn.addEventListener('click', () => setTheme(!html.classList.contains('dark')));
-
-        // Fullscreen Toggle Logic
         document.getElementById('fullscreen-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => showToast(`Error attempting to enable fullscreen: ${err.message}`, 'info'));
-            } else {
-                document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen();
         });
-
-        // Sidebar Submenu Accordion Logic
         function toggleSubmenu(element) {
             const submenu = element.nextElementSibling;
             const icon = element.querySelector('.fa-chevron-right, .fa-chevron-down');
-            
-            // Close all other submenus
-            document.querySelectorAll('.submenu').forEach(menu => {
-                if(menu !== submenu && menu.classList.contains('expanded')) {
-                    menu.classList.remove('expanded');
-                    const otherIcon = menu.previousElementSibling.querySelector('.fa-chevron-down');
-                    if(otherIcon) { otherIcon.classList.remove('fa-chevron-down'); otherIcon.classList.add('fa-chevron-right'); }
-                }
-            });
-
-            // Toggle current
             submenu.classList.toggle('expanded');
-            if(submenu.classList.contains('expanded')) {
-                icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down');
-            } else {
-                icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right');
-            }
+            if(submenu.classList.contains('expanded')) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); } 
+            else { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right'); }
         }
-
-        // Sidebar Mobile/Collapse Toggle
-        document.getElementById('sidebar-toggle').addEventListener('click', () => {
-            const sidebar = document.getElementById('main-sidebar');
-            const currentWidth = sidebar.style.width;
-            sidebar.style.width = currentWidth === '0px' ? '250px' : '0px';
-        });
-
-        // Global Selectors Interactivity
-        document.getElementById('global-site-selector').addEventListener('change', (e) => showToast(`Site context changed to: ${e.target.options[e.target.selectedIndex].text}`, 'info'));
-        document.getElementById('global-lang-selector').addEventListener('change', (e) => showToast(`Language changed to: ${e.target.options[e.target.selectedIndex].text}`, 'info'));
-
     </script>
-
     <script src="js/modules/dashboard.js"></script>
-    <script>
-        // Auto-initialize the dashboard for preview if VAC router isn't active
-        document.addEventListener('DOMContentLoaded', () => {
-            if (VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render();
-        });
-    </script>
+    <script> document.addEventListener('DOMContentLoaded', () => { if (VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render(); }); </script>
 </body>
 </html>
