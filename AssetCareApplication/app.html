@@ -26,17 +26,29 @@
         .dark .hvi-btn-white { background: #334155; color: #f8fafc; }
         .hvi-btn-white:hover { opacity: 0.9; transform: scale(1.02); }
 
-        .sidebar-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; font-size: 14px; border-left: 3px solid transparent; cursor: pointer; }
+        /* Sidebar Standard Styles */
+        #main-sidebar { transition: width 0.3s ease; width: 250px; }
+        .sidebar-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; font-size: 14px; border-left: 3px solid transparent; cursor: pointer; white-space: nowrap; overflow: hidden; }
         .sidebar-item:hover { background-color: #f8fafc; }
         .dark .sidebar-item:hover { background-color: #1e293b; }
         .sidebar-item.active { background-color: #eef5ff; border-left-color: #0ea5e9; color: #0ea5e9; font-weight: 500; }
         .dark .sidebar-item.active { background-color: #0f172a; border-left-color: #38bdf8; color: #38bdf8; }
+        .sidebar-icon { width: 24px; text-align: left; flex-shrink: 0; }
         
+        /* Submenu */
         .submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #f8fafc; }
         .dark .submenu { background: #0f172a; }
         .submenu.expanded { max-height: 500px; }
-        .submenu-item { padding: 10px 20px 10px 45px; font-size: 13px; display: block; cursor: pointer; }
+        .submenu-item { padding: 10px 20px 10px 45px; font-size: 13px; display: block; cursor: pointer; white-space: nowrap; }
         .submenu-item:hover { color: #0ea5e9; }
+
+        /* FEATURE 1: Sidebar Collapsed Styles */
+        #main-sidebar.sidebar-collapsed { width: 64px; }
+        .sidebar-collapsed .sidebar-item span { display: none; }
+        .sidebar-collapsed .caret-icon { display: none; }
+        .sidebar-collapsed .sidebar-item { justify-content: center; padding: 12px 0; }
+        .sidebar-collapsed .sidebar-icon { margin-right: 0; text-align: center; font-size: 16px; }
+        .sidebar-collapsed .submenu { display: none !important; }
 
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 12px 20px; border-radius: 6px; color: white; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease forwards; }
@@ -84,23 +96,21 @@
 
             <div id="profile-dropdown" class="hidden absolute top-10 right-16 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden transition-opacity">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-lg">
-                        JD
-                    </div>
+                    <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-bold text-lg">JD</div>
                     <div>
                         <h4 class="font-bold text-slate-800 dark:text-white text-sm">John Doe</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Fleet Admin</p>
                     </div>
                 </div>
                 <div class="p-2 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
-                    <div class="flex items-center gap-2 py-1"><i class="fas fa-envelope w-4"></i> admin@visioninfra.com</div>
-                    <div class="flex items-center gap-2 py-1"><i class="fas fa-phone w-4"></i> +1 234 567 8900</div>
-                    <div class="flex items-center gap-2 py-1"><i class="fas fa-map-marker-alt w-4"></i> Global Access</div>
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-envelope w-4 text-center"></i> admin@visioninfra.com</div>
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-phone w-4 text-center"></i> +1 234 567 8900</div>
+                    <div class="flex items-center gap-2 py-1"><i class="fas fa-map-marker-alt w-4 text-center"></i> Global Access</div>
                 </div>
                 <div class="p-1">
-                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-id-badge w-5 text-slate-400"></i> View Profile</button>
-                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-user-edit w-5 text-slate-400"></i> Edit Profile</button>
-                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"><i class="fas fa-key w-5 text-slate-400"></i> Change Password</button>
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded"><i class="fas fa-id-badge w-5 text-slate-400"></i> <span data-i18n="view_profile">View Profile</span></button>
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded"><i class="fas fa-user-edit w-5 text-slate-400"></i> <span data-i18n="edit_profile">Edit Profile</span></button>
+                    <button class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded"><i class="fas fa-key w-5 text-slate-400"></i> <span data-i18n="change_pwd">Change Password</span></button>
                 </div>
             </div>
         </div>
@@ -109,9 +119,7 @@
     <div id="logout-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300">
             <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-sign-out-alt text-2xl text-rose-500"></i>
-                </div>
+                <div class="w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center mx-auto mb-4"><i class="fas fa-sign-out-alt text-2xl text-rose-500"></i></div>
                 <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-2" data-i18n="logout_confirm">Ready to Leave?</h3>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mb-6" data-i18n="logout_text">Are you sure you want to log out of your session?</p>
                 <div class="flex gap-3">
@@ -123,67 +131,67 @@
     </div>
 
     <div class="flex flex-1 overflow-hidden">
-        <aside id="main-sidebar" class="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 w-[250px] flex flex-col flex-shrink-0 z-20 transition-all duration-300">
+        <aside id="main-sidebar" class="bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 z-20">
             <nav class="flex-1 overflow-y-auto mt-0">
                 <a href="#dashboard" onclick="VAC.App.navigate('dashboard');return false;" class="sidebar-item active text-slate-600 dark:text-slate-400">
-                    <div class="flex items-center"><i class="fas fa-braille w-6 text-left"></i><span>Dashboard</span></div>
+                    <div class="flex items-center"><i class="fas fa-braille sidebar-icon"></i><span data-i18n="nav_dashboard">Dashboard</span></div>
                 </a>
                 
                 <div class="sidebar-accordion">
                     <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
-                        <div class="flex items-center"><i class="fas fa-clipboard-check w-6 text-left"></i><span>Inspection</span></div>
-                        <i class="fas fa-chevron-down text-[10px] transition-transform"></i>
+                        <div class="flex items-center"><i class="fas fa-clipboard-check sidebar-icon"></i><span data-i18n="nav_inspection">Inspection</span></div>
+                        <i class="fas fa-chevron-down text-[10px] caret-icon transition-transform"></i>
                     </div>
                     <div class="submenu expanded">
-                        <a href="#reports" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Inspection Report', 'info')">Inspection Report</a>
-                        <a href="#checklists" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Inspection Checklist', 'info')">Inspection Checklist</a>
-                        <a href="#reminder" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Reminder', 'info')">Reminder</a>
-                        <a href="#adhoc" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Ad Hoc Inspection', 'info')">Ad Hoc Inspection</a>
+                        <a href="#reports" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_reports">Inspection Report</a>
+                        <a href="#checklists" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_checklists">Inspection Checklist</a>
+                        <a href="#reminder" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_reminder">Reminder</a>
+                        <a href="#adhoc" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_adhoc">Ad Hoc Inspection</a>
                     </div>
                 </div>
 
-                <a href="#logbook" onclick="showToast('Navigating to Logbook', 'info')" class="sidebar-item text-slate-600 dark:text-slate-400">
-                    <div class="flex items-center"><i class="fas fa-book w-6 text-left"></i><span>Logbook</span></div>
+                <a href="#logbook" class="sidebar-item text-slate-600 dark:text-slate-400">
+                    <div class="flex items-center"><i class="fas fa-book sidebar-icon"></i><span data-i18n="nav_logbook">Logbook</span></div>
                 </a>
-                
+
                 <div class="sidebar-accordion">
                     <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
-                        <div class="flex items-center"><i class="fas fa-gas-pump w-6 text-left"></i><span>Fuel Management</span></div>
-                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
+                        <div class="flex items-center"><i class="fas fa-gas-pump sidebar-icon"></i><span data-i18n="nav_fuel">Fuel Management</span></div>
+                        <i class="fas fa-chevron-right text-[10px] caret-icon transition-transform"></i>
                     </div>
                     <div class="submenu">
-                        <a href="#fuel-logger" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Fuel Logger', 'info')">Fuel Logger</a>
+                        <a href="#fuel-logger" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_fuel_logger">Fuel Logger</a>
                     </div>
                 </div>
 
                 <div class="sidebar-accordion">
                     <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
-                        <div class="flex items-center"><i class="fas fa-truck w-6 text-left"></i><span>Vehicles</span></div>
-                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
+                        <div class="flex items-center"><i class="fas fa-truck sidebar-icon"></i><span data-i18n="nav_vehicles">Vehicles</span></div>
+                        <i class="fas fa-chevron-right text-[10px] caret-icon transition-transform"></i>
                     </div>
                     <div class="submenu">
-                        <a href="#vehicles-list" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Vehicles List', 'info')">Vehicles</a>
-                        <a href="#vehicles-overview" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Vehicles Overview', 'info')">Vehicles Overview</a>
+                        <a href="#vehicles-list" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_vehicles_list">Vehicles List</a>
+                        <a href="#vehicles-overview" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_vehicles_overview">Vehicles Overview</a>
                     </div>
                 </div>
 
                 <div class="sidebar-accordion">
                     <div class="sidebar-item text-slate-600 dark:text-slate-400" onclick="toggleSubmenu(this)">
-                        <div class="flex items-center"><i class="fas fa-cogs w-6 text-left"></i><span>Master Data</span></div>
-                        <i class="fas fa-chevron-right text-[10px] transition-transform"></i>
+                        <div class="flex items-center"><i class="fas fa-cogs sidebar-icon"></i><span data-i18n="nav_master">Master Data</span></div>
+                        <i class="fas fa-chevron-right text-[10px] caret-icon transition-transform"></i>
                     </div>
                     <div class="submenu">
-                        <a href="#team" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Team Management', 'info')">Team Management</a>
-                        <a href="#project" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Site Project', 'info')">Site Project</a>
-                        <a href="#account" class="submenu-item text-slate-500 dark:text-slate-400" onclick="showToast('Navigating to Account', 'info')">Account</a>
+                        <a href="#team" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_team">Team Management</a>
+                        <a href="#project" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_project">Site Project</a>
+                        <a href="#account" class="submenu-item text-slate-500 dark:text-slate-400" data-i18n="nav_account">Account</a>
                     </div>
                 </div>
             </nav>
             
             <div class="border-t border-slate-200 dark:border-slate-800">
-                <a href="#analytics" onclick="showToast('Navigating to Analytics', 'info')" class="sidebar-item text-slate-600 dark:text-slate-400">
-                    <div class="flex items-center"><i class="fas fa-chart-line w-6 text-left"></i><span>Analytics Report & KPIs</span></div>
-                    <i class="fas fa-chevron-right text-[10px]"></i>
+                <a href="#analytics" class="sidebar-item text-slate-600 dark:text-slate-400">
+                    <div class="flex items-center"><i class="fas fa-chart-line sidebar-icon"></i><span data-i18n="nav_analytics">Analytics Report & KPIs</span></div>
+                    <i class="fas fa-chevron-right text-[10px] caret-icon"></i>
                 </a>
             </div>
         </aside>
@@ -192,8 +200,9 @@
     </div>
 
     <script>
-        // Utilities
-        window.VAC = window.VAC || { App: { navigate: (path) => console.log('Nav:', path) } };
+        window.VAC = window.VAC || { App: { navigate: (path) => console.log('Navigating to', path) } };
+
+        // Toast Notifications
         window.showToast = function(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -203,68 +212,97 @@
             setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // --- FEATURE 3: Dynamic Language Selector ---
-        const translations = {
-            en: { sites: "Sites :", all: "All", nav_dashboard: "Dashboard", nav_inspection: "Inspection", nav_logbook: "Logbook", logout_confirm: "Ready to Leave?", logout_text: "Are you sure you want to log out of your session?", cancel: "Cancel", logout: "Logout" },
-            es: { sites: "Sitios :", all: "Todos", nav_dashboard: "Tablero", nav_inspection: "Inspección", nav_logbook: "Bitácora", logout_confirm: "¿Listo para salir?", logout_text: "¿Estás seguro de que quieres cerrar tu sesión?", cancel: "Cancelar", logout: "Cerrar sesión" },
-            hi: { sites: "साइटें :", all: "सभी", nav_dashboard: "डैशबोर्ड", nav_inspection: "निरीक्षण", nav_logbook: "लॉगबुक", logout_confirm: "जाने के लिए तैयार?", logout_text: "क्या आप वाकई अपना सत्र लॉग आउट करना चाहते हैं?", cancel: "रद्द करें", logout: "लॉग आउट" }
+        // --- FEATURE: Global Scalable Translation Dictionary ---
+        VAC.Translations = {
+            en: {
+                "sites": "Sites :", "all": "All", "nav_dashboard": "Dashboard", "nav_inspection": "Inspection", "nav_reports": "Inspection Report", "nav_checklists": "Inspection Checklist", "nav_reminder": "Reminder", "nav_adhoc": "Ad Hoc Inspection", "nav_logbook": "Logbook", "nav_fuel": "Fuel Management", "nav_fuel_logger": "Fuel Logger", "nav_vehicles": "Vehicles", "nav_vehicles_list": "Vehicles List", "nav_vehicles_overview": "Vehicles Overview", "nav_master": "Master Data", "nav_team": "Team Management", "nav_project": "Site Project", "nav_account": "Account", "nav_analytics": "Analytics Report & KPIs", "logout_confirm": "Ready to Leave?", "logout_text": "Are you sure you want to log out of your session?", "cancel": "Cancel", "logout": "Logout", "view_profile": "View Profile", "edit_profile": "Edit Profile", "change_pwd": "Change Password",
+                // Dashboard Specific
+                "today": "Today", "last_7_days": "Last 7 Days", "last_30_days": "Last 30 Days", "last_90_days": "Last 90 Days", "custom_date": "Custom Date", "dash_settings": "Dashboard Settings", "map_view": "Map View", "issue_report": "Issue Report", "total_issue": "Total Issue Reported", "resolved": "Resolved", "in_progress": "In Progress", "pending": "Pending", "inspection_conducted": "Inspection Conducted", "total_inspection": "Total Inspection", "approved": "Approved", "pending_approval": "Pending Approval", "working_condition": "Working Condition", "need_attention": "Need attention", "fault_summary": "Fault Summary", "faulty_vehicles": "Faulty Vehicles", "repair_items": "Repair Items", "replace_items": "Replace Items", "top_faulty": "Top Faulty Vehicles", "top_repair": "Top Repair Items", "vehicle_status": "Vehicle Status", "good": "Good", "faulty": "Faulty", "active": "Active", "select_custom_date": "Select Custom Date Range", "start_date": "Start Date", "end_date": "End Date", "apply_range": "Apply Range", "show_issue": "Show Issue Report", "show_inspection": "Show Inspection Conducted", "show_fault": "Show Fault Summary", "save_changes": "Save Changes"
+            },
+            es: {
+                "sites": "Sitios :", "all": "Todos", "nav_dashboard": "Tablero", "nav_inspection": "Inspección", "nav_reports": "Reporte de Inspección", "nav_checklists": "Lista de Verificación", "nav_reminder": "Recordatorio", "nav_adhoc": "Inspección Ad Hoc", "nav_logbook": "Bitácora", "nav_fuel": "Gestión de Combustible", "nav_fuel_logger": "Registro de Comb.", "nav_vehicles": "Vehículos", "nav_vehicles_list": "Lista de Vehículos", "nav_vehicles_overview": "Resumen de Vehículos", "nav_master": "Datos Maestros", "nav_team": "Gestión de Equipo", "nav_project": "Proyecto del Sitio", "nav_account": "Cuenta", "nav_analytics": "Reporte Analítico y KPIs", "logout_confirm": "¿Listo para salir?", "logout_text": "¿Estás seguro de que quieres cerrar tu sesión?", "cancel": "Cancelar", "logout": "Cerrar sesión", "view_profile": "Ver Perfil", "edit_profile": "Editar Perfil", "change_pwd": "Cambiar Contraseña",
+                "today": "Hoy", "last_7_days": "Últ. 7 Días", "last_30_days": "Últ. 30 Días", "last_90_days": "Últ. 90 Días", "custom_date": "Fecha Personalizada", "dash_settings": "Config. de Tablero", "map_view": "Ver Mapa", "issue_report": "Reporte de Problemas", "total_issue": "Total Reportado", "resolved": "Resuelto", "in_progress": "En Progreso", "pending": "Pendiente", "inspection_conducted": "Inspecciones Realizadas", "total_inspection": "Inspección Total", "approved": "Aprobado", "pending_approval": "Pendiente de Aprob.", "working_condition": "En Buen Estado", "need_attention": "Requiere Atención", "fault_summary": "Resumen de Fallas", "faulty_vehicles": "Vehículos Defectuosos", "repair_items": "Elementos a Reparar", "replace_items": "Elementos a Reemplazar", "top_faulty": "Top Vehículos Defectuosos", "top_repair": "Top Elementos a Reparar", "vehicle_status": "Estado de Vehículos", "good": "Bueno", "faulty": "Falla", "active": "Activo", "select_custom_date": "Selec. Rango Personalizado", "start_date": "Fecha de Inicio", "end_date": "Fecha de Fin", "apply_range": "Aplicar", "show_issue": "Mostrar Reporte Problemas", "show_inspection": "Mostrar Inspecciones", "show_fault": "Mostrar Resumen Fallas", "save_changes": "Guardar Cambios"
+            },
+            hi: {
+                "sites": "साइटें :", "all": "सभी", "nav_dashboard": "डैशबोर्ड", "nav_inspection": "निरीक्षण", "nav_reports": "निरीक्षण रिपोर्ट", "nav_checklists": "निरीक्षण चेकलिस्ट", "nav_reminder": "अनुस्मारक", "nav_adhoc": "तदर्थ निरीक्षण", "nav_logbook": "लॉगबुक", "nav_fuel": "ईंधन प्रबंधन", "nav_fuel_logger": "ईंधन लॉगर", "nav_vehicles": "वाहन", "nav_vehicles_list": "वाहन सूची", "nav_vehicles_overview": "वाहन अवलोकन", "nav_master": "मास्टर डेटा", "nav_team": "टीम प्रबंधन", "nav_project": "साइट प्रोजेक्ट", "nav_account": "खाता", "nav_analytics": "एनालिटिक्स और KPIs", "logout_confirm": "जाने के लिए तैयार?", "logout_text": "क्या आप वाकई अपना सत्र लॉग आउट करना चाहते हैं?", "cancel": "रद्द करें", "logout": "लॉग आउट", "view_profile": "प्रोफ़ाइल देखें", "edit_profile": "प्रोफ़ाइल संपादित करें", "change_pwd": "पासवर्ड बदलें",
+                "today": "आज", "last_7_days": "पिछले 7 दिन", "last_30_days": "पिछले 30 दिन", "last_90_days": "पिछले 90 दिन", "custom_date": "कस्टम तिथि", "dash_settings": "डैशबोर्ड सेटिंग्स", "map_view": "मानचित्र दृश्य", "issue_report": "समस्या रिपोर्ट", "total_issue": "कुल समस्याएँ", "resolved": "समाधान किया गया", "in_progress": "प्रगति पर है", "pending": "लंबित", "inspection_conducted": "निरीक्षण किया गया", "total_inspection": "कुल निरीक्षण", "approved": "स्वीकृत", "pending_approval": "स्वीकृति लंबित", "working_condition": "काम करने की स्थिति", "need_attention": "ध्यान देने योग्य", "fault_summary": "दोष सारांश", "faulty_vehicles": "दोषपूर्ण वाहन", "repair_items": "मरम्मत आइटम", "replace_items": "बदलने वाले आइटम", "top_faulty": "शीर्ष दोषपूर्ण वाहन", "top_repair": "शीर्ष मरम्मत आइटम", "vehicle_status": "वाहन की स्थिति", "good": "अच्छा", "faulty": "दोषपूर्ण", "active": "सक्रिय", "select_custom_date": "कस्टम दिनांक चुनें", "start_date": "आरंभ तिथि", "end_date": "अंतिम तिथि", "apply_range": "लागू करें", "show_issue": "समस्या रिपोर्ट दिखाएं", "show_inspection": "निरीक्षण रिपोर्ट दिखाएं", "show_fault": "दोष सारांश दिखाएं", "save_changes": "परिवर्तन सहेजें"
+            }
+        };
+
+        // Global Translate Helper used across files
+        VAC.translate = function(key) {
+            const lang = localStorage.getItem('hvi-lang') || 'en';
+            return (VAC.Translations[lang] && VAC.Translations[lang][key]) ? VAC.Translations[lang][key] : key;
         };
 
         const langSelector = document.getElementById('global-lang-selector');
-        const savedLang = localStorage.getItem('hvi-lang') || 'en';
-        langSelector.value = savedLang;
+        langSelector.value = localStorage.getItem('hvi-lang') || 'en';
 
         function updateLanguage(lang) {
             localStorage.setItem('hvi-lang', lang);
+            // Translate all static HTML elements
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if(translations[lang] && translations[lang][key]) {
-                    el.innerText = translations[lang][key];
-                }
+                el.innerText = VAC.translate(key);
             });
-            window.showToast(`Language updated`, 'success');
-            // Trigger dashboard re-render if it exists to translate dynamic widgets
-            if(VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render();
+            window.showToast(`Language updated successfully`, 'success');
+            // Inform dynamically rendered modules (like Dashboard) to re-render texts
+            window.dispatchEvent(new Event('languageChanged'));
         }
-        updateLanguage(savedLang); // Init
+        updateLanguage(langSelector.value); // Initialize on load
         langSelector.addEventListener('change', (e) => updateLanguage(e.target.value));
-        window.getCurrentLang = () => langSelector.value; // Helper for dashboard
 
-        // --- FEATURE 4: Logout Functionality ---
-        const logoutBtn = document.getElementById('logout-btn');
+        // --- FEATURE: Sidebar Toggle Logic ---
+        const sidebar = document.getElementById('main-sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        
+        // Restore sidebar state
+        if(localStorage.getItem('hvi-sidebar-collapsed') === 'true') {
+            sidebar.classList.add('sidebar-collapsed');
+        }
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('hvi-sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
+            // Trigger window resize so Chart.js recalculates dimensions
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
+        });
+
+        // Sidebar Submenu Logic (Expands sidebar if collapsed)
+        window.toggleSubmenu = function(element) {
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebar.classList.remove('sidebar-collapsed');
+                localStorage.setItem('hvi-sidebar-collapsed', 'false');
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
+            }
+            const submenu = element.nextElementSibling;
+            const icon = element.querySelector('.fa-chevron-right, .fa-chevron-down');
+            submenu.classList.toggle('expanded');
+            if(submenu.classList.contains('expanded')) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); } 
+            else { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right'); }
+        }
+
+        // --- Rest of Interactive Shell Logic ---
+        // Profile Dropdown
+        const profileBtn = document.getElementById('profile-toggle');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        profileBtn.addEventListener('click', (e) => { e.stopPropagation(); profileDropdown.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => { if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) profileDropdown.classList.add('hidden'); });
+
+        // Logout Flow
         const logoutModal = document.getElementById('logout-modal');
         const modalContent = logoutModal.querySelector('div');
-        const cancelLogout = document.getElementById('cancel-logout');
-        const confirmLogout = document.getElementById('confirm-logout');
-
-        logoutBtn.addEventListener('click', () => {
+        document.getElementById('logout-btn').addEventListener('click', () => {
             logoutModal.classList.remove('hidden');
             setTimeout(() => { logoutModal.classList.remove('opacity-0'); modalContent.classList.remove('scale-95'); }, 10);
         });
-        const closeLogoutModal = () => {
+        document.getElementById('cancel-logout').addEventListener('click', () => {
             logoutModal.classList.add('opacity-0'); modalContent.classList.add('scale-95');
             setTimeout(() => logoutModal.classList.add('hidden'), 300);
-        };
-        cancelLogout.addEventListener('click', closeLogoutModal);
-        confirmLogout.addEventListener('click', () => {
-            sessionStorage.clear(); // Clear mock session
-            window.location.href = 'index.html'; // Redirect to login
         });
+        document.getElementById('confirm-logout').addEventListener('click', () => { sessionStorage.clear(); window.location.href = 'index.html'; });
 
-        // --- FEATURE 5: User Profile Dropdown ---
-        const profileBtn = document.getElementById('profile-toggle');
-        const profileDropdown = document.getElementById('profile-dropdown');
-        profileBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            profileDropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-                profileDropdown.classList.add('hidden');
-            }
-        });
-
-        // Other utilities (Theme, Fullscreen, Sidebar)
+        // Theme & Fullscreen
         const html = document.documentElement;
         const themeBtn = document.getElementById('theme-toggle');
         const themeIcon = themeBtn.querySelector('i');
@@ -275,16 +313,7 @@
         }
         if (localStorage.getItem('hvi-theme') === 'dark' || (!('hvi-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) setTheme(true);
         themeBtn.addEventListener('click', () => setTheme(!html.classList.contains('dark')));
-        document.getElementById('fullscreen-toggle').addEventListener('click', () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen();
-        });
-        function toggleSubmenu(element) {
-            const submenu = element.nextElementSibling;
-            const icon = element.querySelector('.fa-chevron-right, .fa-chevron-down');
-            submenu.classList.toggle('expanded');
-            if(submenu.classList.contains('expanded')) { icon.classList.remove('fa-chevron-right'); icon.classList.add('fa-chevron-down'); } 
-            else { icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-right'); }
-        }
+        document.getElementById('fullscreen-toggle').addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); });
     </script>
     <script src="js/modules/dashboard.js"></script>
     <script> document.addEventListener('DOMContentLoaded', () => { if (VAC.Modules && VAC.Modules.dashboard) VAC.Modules.dashboard.render(); }); </script>
