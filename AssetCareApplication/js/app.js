@@ -306,3 +306,4 @@ VAC.App = (function () {
 })();
 
 document.addEventListener('DOMContentLoaded', VAC.App.init);
+    
